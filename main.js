@@ -34,17 +34,32 @@ void main() {
   outColor = v_color;
 }
 `;
+  var matrix = []; 
+  var teste = {
+    matrix,
+    translation: [],
+    rotation: [],
+    scale: []
+  }
+  var allObjects = {
+    teste: [],
+  };
+var objects = [];
+var objectSelected = 0;
+var first = 0;
 var matrixLocation;
 var translation;
 var rotation;
 var scale;
+var translation2;
+var rotation2;
+var scale2;
 var program;
 var canvas = document.querySelector("canvas");
 var gl = canvas.getContext("webgl2");
 if(!gl)
   throw new Error('WebGL not supported');
 alert("webgl in using");
-
 function init(){
   // Use our boilerplate utils to compile the shaders and link into a program
   //var program = webglUtils.createProgramFromSources(gl, [vertexShaderSource, fragmentShaderSource]);
@@ -80,6 +95,39 @@ function init(){
     return null;
   }
   //gl.useProgram(program);
+  var teste = {
+    matrix,
+    translation: [],
+    rotation: [],
+    scale: []
+  }
+  translation2 = [700, 150, 0];
+  rotation2 = [degToRad(40), degToRad(25), degToRad(325)];
+  scale2 = [1, 1, 1];
+    teste.translation = translation2;
+    teste.rotation = rotation2;
+    teste.scale = scale2;
+    console.log(teste);
+
+  allObjects.teste[0] = teste;
+  console.log(allObjects);
+  console.log("PRIMEIRO "+allObjects.teste[0]);
+
+  var teste = {
+    matrix,
+    translation: [],
+    rotation: [],
+    scale: []
+  }
+  translation = [45, 150, 0];
+  rotation = [degToRad(40), degToRad(25), degToRad(325)];
+  scale = [1, 1, 1];
+    teste.translation = translation;
+    teste.rotation = rotation;
+    teste.scale = scale;
+    console.log(teste);
+  allObjects.teste[1] = teste;
+  console.log("SEGUNDO "+allObjects.teste[1]);
   
 };
 
@@ -115,43 +163,68 @@ function draw(){
 
   // Tell it to use our program (pair of shaders)
   gl.useProgram(program);
+  //------------------------------------
+  // First let's make some variables
+  // to hold the translation,
 
+  console.log(allObjects);
+  console.log(allObjects.teste[0].translation);
   // Bind the attribute/buffer set we want.
   //gl.bindVertexArray(vao);
   // Compute the matrix
-  var matrix = m4.projection(gl.canvas.clientWidth, gl.canvas.clientHeight, 400);
-  matrix = m4.translate(matrix, translation[0], translation[1], translation[2]);
-  matrix = m4.xRotate(matrix, rotation[0]);
-  matrix = m4.yRotate(matrix, rotation[1]);
-  matrix = m4.zRotate(matrix, rotation[2]);
-  matrix = m4.scale(matrix, scale[0], scale[1], scale[2]);
+  for ( var i = 0; i < allObjects.teste.length; i++){
+  allObjects.teste[i].matrix = m4.projection(gl.canvas.clientWidth, gl.canvas.clientHeight, 400);
+  allObjects.teste[i].matrix = m4.translate(allObjects.teste[i].matrix, allObjects.teste[i].translation[0], allObjects.teste[i].translation[1], allObjects.teste[i].translation[2]);
+  allObjects.teste[i].matrix = m4.xRotate(allObjects.teste[i].matrix, allObjects.teste[i].rotation[0]);
+  allObjects.teste[i].matrix = m4.yRotate(allObjects.teste[i].matrix, allObjects.teste[i].rotation[1]);
+  allObjects.teste[i].matrix = m4.zRotate(allObjects.teste[i].matrix, allObjects.teste[i].rotation[2]);
+  allObjects.teste[i].matrix = m4.scale(allObjects.teste[i].matrix, allObjects.teste[i].scale[0], allObjects.teste[i].scale[1], allObjects.teste[i].scale[2]);
 
   // Set the matrix.
-  gl.uniformMatrix4fv(matrixLocation, false, matrix);
+  gl.uniformMatrix4fv(matrixLocation, false, allObjects.teste[i].matrix);
+
 
   //Tem o jeito que e bem explicadinho mas vou deixar assim no momento
   gl.drawArrays(gl.TRIANGLES, 0, n);
 
+  console.log("VAIII "+allObjects.teste.length);
+  }
   // First let's make some variables
   // to hold the translation,
-  translation = [700, 150, 0];
-  rotation = [degToRad(40), degToRad(25), degToRad(325)];
-  scale = [1, 1, 1];
   // Compute the matrix
-  matrix = m4.projection(gl.canvas.clientWidth, gl.canvas.clientHeight, 400);
-  matrix = m4.translate(matrix, translation[0], translation[1], translation[2]);
-  matrix = m4.xRotate(matrix, rotation[0]);
-  matrix = m4.yRotate(matrix, rotation[1]);
-  matrix = m4.zRotate(matrix, rotation[2]);
-  matrix = m4.scale(matrix, scale[0], scale[1], scale[2]);
+  /*
+  var matrix2 = m4.projection(gl.canvas.clientWidth, gl.canvas.clientHeight, 400);
+  matrix2 = m4.translate(matrix2, translation2[0], translation2[1], translation2[2]);
+  matrix2 = m4.xRotate(matrix2, rotation2[0]);
+  matrix2 = m4.yRotate(matrix2, rotation2[1]);
+  matrix2 = m4.zRotate(matrix2, rotation2[2]);
+  matrix2 = m4.scale(matrix2, scale2[0], scale2[1], scale2[2]);
 
   // Set the matrix.
-  gl.uniformMatrix4fv(matrixLocation, false, matrix);
+  gl.uniformMatrix4fv(matrixLocation, false, matrix2);
 
   //Tem o jeito que e bem explicadinho mas vou deixar assim no momento
   gl.drawArrays(gl.TRIANGLES, 0, n);
+  console.log("toaqui");
+    first = 1;
+  }else{
+  //---------------------------------------
+  //teste
+  if(objectSelected == 1){
+    aham();
+    return;
+  }
+  if(objectSelected == 2){
+    aham2();
+    return;
+  }
   
+  }
+  */
+  UI(objectSelected);
+  return;
 }
+
 
 function initBuffers(){
   const vertices = [
@@ -477,11 +550,6 @@ function initBuffers(){
   gl.vertexAttribPointer(
       aColor, size, type, normalize, stride, offset);
 
-  // First let's make some variables
-  // to hold the translation,
-  translation = [45, 150, 0];
-  rotation = [degToRad(40), degToRad(25), degToRad(325)];
-  scale = [1, 1, 1];
 
   //coloquei aqui mesmo por enquanto
   gl.bindVertexArray(vao);
@@ -638,44 +706,130 @@ function degToRad(d) {
 };
 
 
-function updatePosition(index) {
+function updatePosition(index, objectSelected) {
   return function(event, ui) {
-    translation[index] = ui.value;
+    allObjects.teste[objectSelected].translation[index] = ui.value;
     draw();
   };
 };
 
-function updateRotation(index) {
+function updateRotation(index, objectSelected) {
   return function(event, ui) {
     var angleInDegrees = ui.value;
     var angleInRadians = degToRad(angleInDegrees);
-    rotation[index] = angleInRadians;
+    allObjects.teste[objectSelected].rotation[index] = angleInRadians;
     draw();
   };
 };
 
-function updateScale(index) {
+function updateScale(index, objectSelected) {
   return function(event, ui) {
-    scale[index] = ui.value;
+    allObjects.teste[objectSelected].scale[index] = ui.value;
     draw();
   };
 };
 
-function UI(){
+function UI(objectSelected){
   // Setup a ui.
-  webglLessonsUI.setupSlider("#x",      {value: translation[0], slide: updatePosition(0), max: gl.canvas.width });
-  webglLessonsUI.setupSlider("#y",      {value: translation[1], slide: updatePosition(1), max: gl.canvas.height});
-  webglLessonsUI.setupSlider("#z",      {value: translation[2], slide: updatePosition(2), max: gl.canvas.height});
-  webglLessonsUI.setupSlider("#angleX", {value: radToDeg(rotation[0]), slide: updateRotation(0), max: 360});
-  webglLessonsUI.setupSlider("#angleY", {value: radToDeg(rotation[1]), slide: updateRotation(1), max: 360});
-  webglLessonsUI.setupSlider("#angleZ", {value: radToDeg(rotation[2]), slide: updateRotation(2), max: 360});
-  webglLessonsUI.setupSlider("#scaleX", {value: scale[0], slide: updateScale(0), min: -5, max: 5, step: 0.01, precision: 2});
-  webglLessonsUI.setupSlider("#scaleY", {value: scale[1], slide: updateScale(1), min: -5, max: 5, step: 0.01, precision: 2});
-  webglLessonsUI.setupSlider("#scaleZ", {value: scale[2], slide: updateScale(2), min: -5, max: 5, step: 0.01, precision: 2});
+  selectObject(objectSelected);
+  console.log("PEGAAAAAAAAAA"+objectSelected);
+  webglLessonsUI.setupSlider("#x",      {value: allObjects.teste[objectSelected].translation[0], slide: updatePosition(0, objectSelected), max: gl.canvas.width });
+  webglLessonsUI.setupSlider("#y",      {value: allObjects.teste[objectSelected].translation[1], slide: updatePosition(1, objectSelected), max: gl.canvas.height});
+  webglLessonsUI.setupSlider("#z",      {value: allObjects.teste[objectSelected].translation[2], slide: updatePosition(2, objectSelected), max: gl.canvas.height});
+  webglLessonsUI.setupSlider("#angleX", {value: radToDeg(allObjects.teste[objectSelected].rotation[0]), slide: updateRotation(0, objectSelected), max: 360});
+  webglLessonsUI.setupSlider("#angleY", {value: radToDeg(allObjects.teste[objectSelected].rotation[1]), slide: updateRotation(1, objectSelected), max: 360});
+  webglLessonsUI.setupSlider("#angleZ", {value: radToDeg(allObjects.teste[objectSelected].rotation[2]), slide: updateRotation(2, objectSelected), max: 360});
+  webglLessonsUI.setupSlider("#scaleX", {value: allObjects.teste[objectSelected].scale[0], slide: updateScale(0, objectSelected), min: -5, max: 5, step: 0.01, precision: 2});
+  webglLessonsUI.setupSlider("#scaleY", {value: allObjects.teste[objectSelected].scale[1], slide: updateScale(1, objectSelected), min: -5, max: 5, step: 0.01, precision: 2});
+  webglLessonsUI.setupSlider("#scaleZ", {value: allObjects.teste[objectSelected].scale[2], slide: updateScale(2, objectSelected), min: -5, max: 5, step: 0.01, precision: 2});
+};
+
+function drawAll(){
+  webglUtils.resizeCanvasToDisplaySize(gl.canvas);
+
+  // Tell WebGL how to convert from clip space to pixels
+  gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+
+  // Specify the color for clearing <canvas>
+  gl.clearColor(1, 1, 1, 1);
+  //gl.clear(gl.COLOR_BUFFER_BIT);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+  // Draw a line
+  //gl.useProgram(program);
+  //gl.drawArrays(gl.TRIANGLES, 0, n);
+  // turn on depth testing
+  gl.enable(gl.DEPTH_TEST);
+
+  // tell webgl to cull faces
+  gl.enable(gl.CULL_FACE);
+
+  // Tell it to use our program (pair of shaders)
+  gl.useProgram(program);
+  //------------------------------------
+  // First let's make some variables
+  // to hold the translation,
+
+  console.log(allObjects);
+  console.log("DESENHO 1: " + allObjects.teste[0].matrix);
+  // Bind the attribute/buffer set we want.
+  //gl.bindVertexArray(vao);
+  // Compute the matrix
+  translation2 = [700, 150, 0];
+  rotation2 = [degToRad(40), degToRad(25), degToRad(325)];
+  scale2 = [1, 1, 1];
+    teste.translation = translation2;
+    teste.rotation = rotation2;
+    teste.scale = scale2;
+    console.log(teste);
+
+  allObjects.teste[0] = teste;
+  console.log(allObjects);
+  console.log("DESENHO 1: " + allObjects.teste[0].matrix);
+  
+  allObjects.teste[0].matrix = m4.projection(gl.canvas.clientWidth, gl.canvas.clientHeight, 400);
+  allObjects.teste[0].matrix = m4.translate(allObjects.teste[0].matrix, allObjects.teste[0].translation[0], allObjects.teste[0].translation[1], allObjects.teste[0].translation[2]);
+  allObjects.teste[0].matrix = m4.xRotate(allObjects.teste[0].matrix, allObjects.teste[0].rotation[0]);
+  allObjects.teste[0].matrix = m4.yRotate(allObjects.teste[0].matrix, allObjects.teste[0].rotation[1]);
+  allObjects.teste[0].matrix = m4.zRotate(allObjects.teste[0].matrix, allObjects.teste[0].rotation[2]);
+  allObjects.teste[0].matrix = m4.scale(allObjects.teste[0].matrix, allObjects.teste[0].scale[0], allObjects.teste[0].scale[1], allObjects.teste[0].scale[2]);
+
+  // Set the matrix.
+  gl.uniformMatrix4fv(matrixLocation, false, allObjects.teste[0].matrix);
+
+
+  //Tem o jeito que e bem explicadinho mas vou deixar assim no momento
+  gl.drawArrays(gl.TRIANGLES, 0, n);
+
+  console.log("DESENHO 2: " + allObjects.teste[1].matrix);
+
+  allObjects.teste[1].matrix = m4.projection(gl.canvas.clientWidth, gl.canvas.clientHeight, 400);
+  allObjects.teste[1].matrix = m4.translate(allObjects.teste[1].matrix, allObjects.teste[1].translation[0], allObjects.teste[1].translation[1], allObjects.teste[1].translation[2]);
+  allObjects.teste[1].matrix = m4.xRotate(allObjects.teste[1].matrix, allObjects.teste[1].rotation[0]);
+  allObjects.teste[1].matrix = m4.yRotate(allObjects.teste[1].matrix, allObjects.teste[1].rotation[1]);
+  allObjects.teste[1].matrix = m4.zRotate(allObjects.teste[1].matrix, allObjects.teste[1].rotation[2]);
+  allObjects.teste[1].matrix = m4.scale(allObjects.teste[1].matrix, allObjects.teste[1].scale[0], allObjects.teste[1].scale[1], allObjects.teste[1].scale[2]);
+
+  // Set the matrix.
+  gl.uniformMatrix4fv(matrixLocation, false, allObjects.teste[1].matrix);
+
+
+  //Tem o jeito que e bem explicadinho mas vou deixar assim no momento
+  gl.drawArrays(gl.TRIANGLES, 0, n);
 
 };
 
 init();
 var n = drawFist();
-draw();
-UI();
+drawAll();
+UI(objectSelected);
+if(allObjects.teste[1] == undefined)
+  console.log("LOOOOOOOOOOOOOOOO");
+console.log(allObjects.teste[1])
+
+function selectObject(e){
+  console.log(e);
+  objectSelected = e;
+  return e;
+};
+
