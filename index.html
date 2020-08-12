@@ -31,11 +31,14 @@
       </div>
     </div>
     <!-- O segundo valor estará selecionado inicialmente -->
-    <select name="select" onchange="selectObject(this.value)">
-      <option value="0">F0</option>
-      <option value="1">F1</option>
-      <option value="2">F2</option>
+    <div>
+    <select id="listObjects" name="select" onchange="selectObject(this.value)">
+      <option value="0">0 - Object</option>
     </select>
-
+    </div>
+    <div>
+    <button type="button" onclick="add()">Insert option</button>
+    <button type="button" onclick="remove()">Remove option</button>
+    </div>
   </body>
 </html>

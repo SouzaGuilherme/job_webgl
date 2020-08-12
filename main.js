@@ -60,6 +60,7 @@ var gl = canvas.getContext("webgl2");
 if(!gl)
   throw new Error('WebGL not supported');
 alert("webgl in using");
+
 function init(){
   // Use our boilerplate utils to compile the shaders and link into a program
   //var program = webglUtils.createProgramFromSources(gl, [vertexShaderSource, fragmentShaderSource]);
@@ -112,23 +113,7 @@ function init(){
   allObjects.teste[0] = teste;
   console.log(allObjects);
   console.log("PRIMEIRO "+allObjects.teste[0]);
-
-  var teste = {
-    matrix,
-    translation: [],
-    rotation: [],
-    scale: []
-  }
-  translation = [45, 150, 0];
-  rotation = [degToRad(40), degToRad(25), degToRad(325)];
-  scale = [1, 1, 1];
-    teste.translation = translation;
-    teste.rotation = rotation;
-    teste.scale = scale;
-    console.log(teste);
-  allObjects.teste[1] = teste;
-  console.log("SEGUNDO "+allObjects.teste[1]);
-  
+  return;
 };
 
 function drawFist(){
@@ -142,6 +127,7 @@ function drawFist(){
 };
 
 function draw(){
+  //UI(objectSelected);
   webglUtils.resizeCanvasToDisplaySize(gl.canvas);
 
   // Tell WebGL how to convert from clip space to pixels
@@ -221,7 +207,6 @@ function draw(){
   
   }
   */
-  UI(objectSelected);
   return;
 }
 
@@ -731,8 +716,6 @@ function updateScale(index, objectSelected) {
 
 function UI(objectSelected){
   // Setup a ui.
-  selectObject(objectSelected);
-  console.log("PEGAAAAAAAAAA"+objectSelected);
   webglLessonsUI.setupSlider("#x",      {value: allObjects.teste[objectSelected].translation[0], slide: updatePosition(0, objectSelected), max: gl.canvas.width });
   webglLessonsUI.setupSlider("#y",      {value: allObjects.teste[objectSelected].translation[1], slide: updatePosition(1, objectSelected), max: gl.canvas.height});
   webglLessonsUI.setupSlider("#z",      {value: allObjects.teste[objectSelected].translation[2], slide: updatePosition(2, objectSelected), max: gl.canvas.height});
@@ -755,9 +738,6 @@ function drawAll(){
   //gl.clear(gl.COLOR_BUFFER_BIT);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-  // Draw a line
-  //gl.useProgram(program);
-  //gl.drawArrays(gl.TRIANGLES, 0, n);
   // turn on depth testing
   gl.enable(gl.DEPTH_TEST);
 
@@ -766,25 +746,8 @@ function drawAll(){
 
   // Tell it to use our program (pair of shaders)
   gl.useProgram(program);
-  //------------------------------------
-  // First let's make some variables
-  // to hold the translation,
 
-  console.log(allObjects);
-  console.log("DESENHO 1: " + allObjects.teste[0].matrix);
-  // Bind the attribute/buffer set we want.
-  //gl.bindVertexArray(vao);
-  // Compute the matrix
-  translation2 = [700, 150, 0];
-  rotation2 = [degToRad(40), degToRad(25), degToRad(325)];
-  scale2 = [1, 1, 1];
-    teste.translation = translation2;
-    teste.rotation = rotation2;
-    teste.scale = scale2;
-    console.log(teste);
 
-  allObjects.teste[0] = teste;
-  console.log(allObjects);
   console.log("DESENHO 1: " + allObjects.teste[0].matrix);
   
   allObjects.teste[0].matrix = m4.projection(gl.canvas.clientWidth, gl.canvas.clientHeight, 400);
@@ -800,36 +763,59 @@ function drawAll(){
 
   //Tem o jeito que e bem explicadinho mas vou deixar assim no momento
   gl.drawArrays(gl.TRIANGLES, 0, n);
-
-  console.log("DESENHO 2: " + allObjects.teste[1].matrix);
-
-  allObjects.teste[1].matrix = m4.projection(gl.canvas.clientWidth, gl.canvas.clientHeight, 400);
-  allObjects.teste[1].matrix = m4.translate(allObjects.teste[1].matrix, allObjects.teste[1].translation[0], allObjects.teste[1].translation[1], allObjects.teste[1].translation[2]);
-  allObjects.teste[1].matrix = m4.xRotate(allObjects.teste[1].matrix, allObjects.teste[1].rotation[0]);
-  allObjects.teste[1].matrix = m4.yRotate(allObjects.teste[1].matrix, allObjects.teste[1].rotation[1]);
-  allObjects.teste[1].matrix = m4.zRotate(allObjects.teste[1].matrix, allObjects.teste[1].rotation[2]);
-  allObjects.teste[1].matrix = m4.scale(allObjects.teste[1].matrix, allObjects.teste[1].scale[0], allObjects.teste[1].scale[1], allObjects.teste[1].scale[2]);
-
-  // Set the matrix.
-  gl.uniformMatrix4fv(matrixLocation, false, allObjects.teste[1].matrix);
-
-
-  //Tem o jeito que e bem explicadinho mas vou deixar assim no momento
-  gl.drawArrays(gl.TRIANGLES, 0, n);
-
 };
 
 init();
 var n = drawFist();
 drawAll();
-UI(objectSelected);
-if(allObjects.teste[1] == undefined)
-  console.log("LOOOOOOOOOOOOOOOO");
-console.log(allObjects.teste[1])
+UI(0);
 
 function selectObject(e){
   console.log(e);
   objectSelected = e;
-  return e;
+  UI(e);
 };
 
+function add() {
+  // get reference to select element
+    var sel = document.getElementById('listObjects');
+    var opt = document.createElement('option');
+    opt.appendChild( document.createTextNode(String(sel.length).concat(' - Object')));
+
+    // set value property of opt
+    opt.value = sel.length;
+  var teste = {
+    matrix,
+    translation: [],
+    rotation: [],
+    scale: []
+  }
+  translation2 = [150, 150, 0];
+  rotation2 = [degToRad(40), degToRad(25), degToRad(325)];
+  scale2 = [1, 1, 1];
+    teste.translation = translation2;
+    teste.rotation = rotation2;
+    teste.scale = scale2;
+    console.log(teste);
+
+  allObjects.teste[opt.value] = teste;
+  console.log(allObjects);
+  UI(opt.value);
+  draw();
+    // add opt to end of select box (sel)
+    sel.appendChild(opt); 
+}
+function remove() {
+  // remove 2nd option in select box (sel)
+  if(allObjects.teste.length == 1){
+    console.log("Last Object present in screen");
+    return;
+  }
+  var sel = document.getElementById('listObjects');
+    sel.removeChild( sel.options[sel.length-1] ); 
+  allObjects.teste.splice(allObjects.teste.length-1);
+  console.log("VAMO VER"+allObjects.teste.length);
+  UI(allObjects.teste.length-1);
+  draw();
+  
+}
