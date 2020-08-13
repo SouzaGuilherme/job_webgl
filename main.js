@@ -55,6 +55,7 @@ var translation2;
 var rotation2;
 var scale2;
 var program;
+var Tbezier;
 var canvas = document.querySelector("canvas");
 var gl = canvas.getContext("webgl2");
 if(!gl)
@@ -100,7 +101,11 @@ function init(){
     matrix,
     translation: [],
     rotation: [],
-    scale: []
+    scale: [],
+    endPointBezier: [],
+    midPointBezier: [],
+    pointRotation: [],
+    Tbezier,
   }
   translation2 = [700, 150, 0];
   rotation2 = [degToRad(40), degToRad(25), degToRad(325)];
@@ -108,6 +113,10 @@ function init(){
     teste.translation = translation2;
     teste.rotation = rotation2;
     teste.scale = scale2;
+    teste.endPointBezier = [0, 0, 0];
+    teste.midPointBezier = [0, 0, 0];
+    teste.pointRotation = [0, 0, 0];
+    teste.Tbezier = 0;
     console.log(teste);
 
   allObjects.teste[0] = teste;
@@ -159,54 +168,24 @@ function draw(){
   //gl.bindVertexArray(vao);
   // Compute the matrix
   for ( var i = 0; i < allObjects.teste.length; i++){
-  allObjects.teste[i].matrix = m4.projection(gl.canvas.clientWidth, gl.canvas.clientHeight, 400);
-  allObjects.teste[i].matrix = m4.translate(allObjects.teste[i].matrix, allObjects.teste[i].translation[0], allObjects.teste[i].translation[1], allObjects.teste[i].translation[2]);
-  allObjects.teste[i].matrix = m4.xRotate(allObjects.teste[i].matrix, allObjects.teste[i].rotation[0]);
-  allObjects.teste[i].matrix = m4.yRotate(allObjects.teste[i].matrix, allObjects.teste[i].rotation[1]);
-  allObjects.teste[i].matrix = m4.zRotate(allObjects.teste[i].matrix, allObjects.teste[i].rotation[2]);
-  allObjects.teste[i].matrix = m4.scale(allObjects.teste[i].matrix, allObjects.teste[i].scale[0], allObjects.teste[i].scale[1], allObjects.teste[i].scale[2]);
+    allObjects.teste[i].matrix = m4.projection(gl.canvas.clientWidth, gl.canvas.clientHeight, 400);
+    allObjects.teste[i].matrix = m4.translate(allObjects.teste[i].matrix, allObjects.teste[i].translation[0], allObjects.teste[i].translation[1], allObjects.teste[i].translation[2]);
+    allObjects.teste[i].matrix = m4.xRotate(allObjects.teste[i].matrix, allObjects.teste[i].rotation[0]);
+    allObjects.teste[i].matrix = m4.yRotate(allObjects.teste[i].matrix, allObjects.teste[i].rotation[1]);
+    allObjects.teste[i].matrix = m4.zRotate(allObjects.teste[i].matrix, allObjects.teste[i].rotation[2]);
+    allObjects.teste[i].matrix = m4.scale(allObjects.teste[i].matrix, allObjects.teste[i].scale[0], allObjects.teste[i].scale[1], allObjects.teste[i].scale[2]);
+    //For rotation in center or point select
+    //allObjects.teste[i].matrix = m4.translate(allObjects.teste[i].matrix, -50, -75, allObjects.teste[i].translation[2]);
 
-  // Set the matrix.
-  gl.uniformMatrix4fv(matrixLocation, false, allObjects.teste[i].matrix);
+    // Set the matrix.
+    gl.uniformMatrix4fv(matrixLocation, false, allObjects.teste[i].matrix);
 
 
-  //Tem o jeito que e bem explicadinho mas vou deixar assim no momento
-  gl.drawArrays(gl.TRIANGLES, 0, n);
+    //Tem o jeito que e bem explicadinho mas vou deixar assim no momento
+    gl.drawArrays(gl.TRIANGLES, 0, n);
 
-  console.log("VAIII "+allObjects.teste.length);
+    console.log("VAIII "+allObjects.teste.length);
   }
-  // First let's make some variables
-  // to hold the translation,
-  // Compute the matrix
-  /*
-  var matrix2 = m4.projection(gl.canvas.clientWidth, gl.canvas.clientHeight, 400);
-  matrix2 = m4.translate(matrix2, translation2[0], translation2[1], translation2[2]);
-  matrix2 = m4.xRotate(matrix2, rotation2[0]);
-  matrix2 = m4.yRotate(matrix2, rotation2[1]);
-  matrix2 = m4.zRotate(matrix2, rotation2[2]);
-  matrix2 = m4.scale(matrix2, scale2[0], scale2[1], scale2[2]);
-
-  // Set the matrix.
-  gl.uniformMatrix4fv(matrixLocation, false, matrix2);
-
-  //Tem o jeito que e bem explicadinho mas vou deixar assim no momento
-  gl.drawArrays(gl.TRIANGLES, 0, n);
-  console.log("toaqui");
-    first = 1;
-  }else{
-  //---------------------------------------
-  //teste
-  if(objectSelected == 1){
-    aham();
-    return;
-  }
-  if(objectSelected == 2){
-    aham2();
-    return;
-  }
-  
-  }
-  */
   return;
 }
 
@@ -707,11 +686,115 @@ function updateRotation(index, objectSelected) {
   };
 };
 
+function updatePointRotation(index, objectSelected){
+  return function (event, ui) {
+    var angleInDegrees = 360 - ui.value;
+    var rotationInRadians = angleInDegrees * Math.PI / 180;
+    allObjects.teste[objectSelected].pointRotation[index] = rotationInRadians;
+    draw();
+  }
+}
+
 function updateScale(index, objectSelected) {
   return function(event, ui) {
     allObjects.teste[objectSelected].scale[index] = ui.value;
     draw();
   };
+};
+
+//BEZIER
+function updateBezierEnd(index, objectSelected) {
+  return function(event, ui) {
+    allObjects.teste[objectSelected].endPointBezier[index] = ui.value;
+  };
+};
+
+function updateBezierMid(index, objectSelected) {
+  return function(event, ui) {
+    allObjects.teste[objectSelected].midPointBezier[index] = ui.value;
+  };
+};
+
+function updateBezierT(objectSelected) {
+  return function(event, ui) {
+    allObjects.teste[objectSelected].Tbezier = ui.value;
+    console.log("T-Update"+allObjects.teste[objectSelected].Tbezier);
+    quadraticBezier(objectSelected);
+    draw();
+  };
+};
+
+function drawBezier (pointBezierX, pointBezierY, objectSelected){
+  console.log("X"+pointBezierX,"Y" + pointBezierY);
+  //UI(objectSelected);
+  webglUtils.resizeCanvasToDisplaySize(gl.canvas);
+
+  // Tell WebGL how to convert from clip space to pixels
+  gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+
+  // Specify the color for clearing <canvas>
+  gl.clearColor(1, 1, 1, 1);
+  //gl.clear(gl.COLOR_BUFFER_BIT);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+  // Draw a line
+  //gl.useProgram(program);
+  //gl.drawArrays(gl.TRIANGLES, 0, n);
+  // turn on depth testing
+  gl.enable(gl.DEPTH_TEST);
+
+  // tell webgl to cull faces
+  gl.enable(gl.CULL_FACE);
+
+  // Tell it to use our program (pair of shaders)
+  gl.useProgram(program);
+  //------------------------------------
+  // First let's make some variables
+  // to hold the translation,
+
+  allObjects.teste[objectSelected].matrix = m4.projection(gl.canvas.clientWidth, gl.canvas.clientHeight, 400);
+  allObjects.teste[objectSelected].matrix = m4.translate(allObjects.teste[objectSelected].matrix, pointBezierX, pointBezierY, allObjects.teste[objectSelected].translation[2]);
+  allObjects.teste[objectSelected].matrix = m4.xRotate(allObjects.teste[objectSelected].matrix, allObjects.teste[objectSelected].rotation[0]);
+  allObjects.teste[objectSelected].matrix = m4.yRotate(allObjects.teste[objectSelected].matrix, allObjects.teste[objectSelected].rotation[1]);
+  allObjects.teste[objectSelected].matrix = m4.zRotate(allObjects.teste[objectSelected].matrix, allObjects.teste[objectSelected].rotation[2]);
+  allObjects.teste[objectSelected].matrix = m4.scale(allObjects.teste[objectSelected].matrix, allObjects.teste[objectSelected].scale[0], allObjects.teste[objectSelected].scale[1], allObjects.teste[objectSelected].scale[2]);
+
+  // Set the matrix.
+  gl.uniformMatrix4fv(matrixLocation, false, allObjects.teste[objectSelected].matrix);
+
+
+  //Tem o jeito que e bem explicadinho mas vou deixar assim no momento
+  gl.drawArrays(gl.TRIANGLES, 0, n);
+
+  return;
+  
+};
+// p0 == allObjects.teste[index].translation[1]
+// p2 == allObjects.teste[index].endendPointBezier[1] == definido pelo usuario
+// p1 == allObjects.teste[index].midendPointBezier[1] == p2/2
+//       allObjects.teste[index].midendPointBezier[2] == definido pelo usuario
+function quadraticBezier(objectSelected){
+  console.log("T-QUADRATIC"+allObjects.teste[objectSelected].Tbezier);
+  console.log("STARTx"+allObjects.teste[objectSelected].translation[0]);
+  console.log("STARTy"+allObjects.teste[objectSelected].translation[1]);
+  console.log("MIDx"+allObjects.teste[objectSelected].midPointBezier[0]);
+  console.log("MIDy"+allObjects.teste[objectSelected].midPointBezier[1]);
+  console.log("ENDx"+allObjects.teste[objectSelected].endPointBezier[0]);
+  console.log("ENDy"+allObjects.teste[objectSelected].endPointBezier[1]);
+  const p0x = allObjects.teste[objectSelected].translation[0];
+  const p0y = allObjects.teste[objectSelected].translation[1];
+  const p1x = allObjects.teste[objectSelected].midPointBezier[0];
+  const p1y = allObjects.teste[objectSelected].midPointBezier[1];
+  const p2x = allObjects.teste[objectSelected].endPointBezier[0];
+  const p2y = allObjects.teste[objectSelected].endPointBezier[1];
+  const t = allObjects.teste[objectSelected].Tbezier;
+
+  const pFinalx = (1.0 - t) * (1.0 - t) * p0x + 2.0 * (1.0 - t) * t * p1x + t * t * p2x;
+  const pFinaly = (1.0 - t) * (1.0 - t) * p0y + 2.0 * (1.0 - t) * t * p1y + t * t * p2y;
+  allObjects.teste[objectSelected].translation[0] = pFinalx;
+  allObjects.teste[objectSelected].translation[1] = pFinaly;
+  //drawBezier(pFinalx, pFinaly, objectSelected);
+  return ;
 };
 
 function UI(objectSelected){
@@ -725,6 +808,18 @@ function UI(objectSelected){
   webglLessonsUI.setupSlider("#scaleX", {value: allObjects.teste[objectSelected].scale[0], slide: updateScale(0, objectSelected), min: -5, max: 5, step: 0.01, precision: 2});
   webglLessonsUI.setupSlider("#scaleY", {value: allObjects.teste[objectSelected].scale[1], slide: updateScale(1, objectSelected), min: -5, max: 5, step: 0.01, precision: 2});
   webglLessonsUI.setupSlider("#scaleZ", {value: allObjects.teste[objectSelected].scale[2], slide: updateScale(2, objectSelected), min: -5, max: 5, step: 0.01, precision: 2});
+
+  //BIEZER
+  webglLessonsUI.setupSlider("#endpointBiezerX",      {value: allObjects.teste[objectSelected].endPointBezier[0], slide: updateBezierEnd(0, objectSelected), max: gl.canvas.width });
+  webglLessonsUI.setupSlider("#endpointBiezerY",      {value: allObjects.teste[objectSelected].endPointBezier[1], slide: updateBezierEnd(1, objectSelected), max: gl.canvas.height});
+  webglLessonsUI.setupSlider("#midpointBiezerX",      {value: allObjects.teste[objectSelected].midPointBezier[0], slide: updateBezierMid(0, objectSelected), max: gl.canvas.width });
+  webglLessonsUI.setupSlider("#midpointBiezerY",      {value: allObjects.teste[objectSelected].midPointBezier[1], slide: updateBezierMid(1, objectSelected), max: gl.canvas.height});
+  webglLessonsUI.setupSlider("#T_Bezier",      {value: allObjects.teste[objectSelected].Tbezier, slide: updateBezierT(objectSelected), min: 0, max: 1, step: 0.01, precision: 2});
+
+
+  //Rotation in point
+  webglLessonsUI.setupSlider("#pointAngleY",  {value: allObjects.teste[objectSelected].pointRotation[1] * 180 / Math.PI | 0, slide: updatePointRotation, max: 360});
+
 };
 
 function drawAll(){
@@ -788,7 +883,10 @@ function add() {
     matrix,
     translation: [],
     rotation: [],
-    scale: []
+    scale: [],
+    endPointBezier: [],
+    midPointBezier: [],
+    Tbezier,
   }
   translation2 = [150, 150, 0];
   rotation2 = [degToRad(40), degToRad(25), degToRad(325)];
@@ -796,6 +894,10 @@ function add() {
     teste.translation = translation2;
     teste.rotation = rotation2;
     teste.scale = scale2;
+    teste.endPointBezier = [];
+    teste.midPointBezier =  [];
+  teste.pointRotation = []
+    teste.Tbezier = 0;
     console.log(teste);
 
   allObjects.teste[opt.value] = teste;
@@ -805,6 +907,7 @@ function add() {
     // add opt to end of select box (sel)
     sel.appendChild(opt); 
 }
+
 function remove() {
   // remove 2nd option in select box (sel)
   if(allObjects.teste.length == 1){
@@ -818,4 +921,5 @@ function remove() {
   UI(allObjects.teste.length-1);
   draw();
   
-}
+};
+
