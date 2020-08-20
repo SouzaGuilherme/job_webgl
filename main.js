@@ -34,6 +34,31 @@ void main() {
   outColor = v_color;
 }
 `;
+var cameraOnn = 0;
+var lookAtOnn = 0;
+var translationX;
+var translationY;
+var translationZ;
+var rotationX;
+var rotationY;
+var rotationZ;
+var scaleX;
+var scaleY;
+var scaleZ;
+var isTransformation;
+var listAnimation = {
+  isTransformation,
+  translationX,
+  translationY,
+  translationZ,
+  rotationX,
+  rotationY,
+  rotationZ,
+  scaleX,
+  scaleY,
+  scaleZ,
+};
+var orderAnimation = [];
 var cameraSelected = 0;
   var matrix = []; 
   var teste = {
@@ -115,8 +140,10 @@ function init(){
     Tbezier,
     cameraAngleRadians,
   }
-  translation2 = [0, 0, -360];
-  rotation2 = [degToRad(190), degToRad(40), degToRad(30)];
+  translation2 = [317, 281, 0];
+  rotation2 = [degToRad(0), degToRad(0), degToRad(0)];
+  //translation2 = [0, 0, -360];
+  //rotation2 = [degToRad(190), degToRad(40), degToRad(30)];
   //translation2 = [150, 150, 0];
   //rotation2 = [degToRad(50), degToRad(25), degToRad(325)];
   scale2 = [1, 1, 1];
@@ -135,7 +162,14 @@ function init(){
 
   var camera = {
     camPosition : [0, 0, -200],
+    camPositionLookAt : [0, 0, -200],
+    midPoint: [0, 0, 0],
+    endPoint: [0, 0, 0],
+    Tbezier: 0,
     zoom: 60,
+    lookAtOnn: 0,
+    cameraOnn: 0,
+    followObject: 0,
   };
   multCameras.camera[0] = camera;
   console.log("CAMERA", multCameras);
@@ -917,7 +951,26 @@ function updateBezierT(objectSelected) {
     allObjects.teste[objectSelected].Tbezier = ui.value;
     console.log("T-Update"+allObjects.teste[objectSelected].Tbezier);
     quadraticBezier(objectSelected);
-    draw();
+    drawAll();
+  };
+};
+//BEZIER CAM
+function updateBezierEndCam(index, cameraSelected) {
+  return function(event, ui) {
+    multCameras.camera[cameraSelected].endPoint[index] = ui.value;
+  };
+};
+
+function updateBezierMidCam(index, cameraSelected) {
+  return function(event, ui) {
+    multCameras.camera[cameraSelected].midPoint[index] = ui.value;
+  };
+};
+function updateBezierT_Cam(cameraSelected) {
+  return function(event, ui) {
+    multCameras.camera[cameraSelected].Tbezier = ui.value;
+    quadraticBezier(cameraSelected);
+    drawAll();
   };
 };
 
@@ -932,6 +985,13 @@ function updateCameraAngle(objectSelected) {
 function updateCameraPosition(index, cameraSelected) {
   return function(event, ui) {
     multCameras.camera[cameraSelected].camPosition[index] = ui.value;
+    //draw();
+    drawAll();
+  };
+};
+function updateCameraPositionLookAt(index, cameraSelected) {
+  return function(event, ui) {
+    multCameras.camera[cameraSelected].camPositionLookAt[index] = ui.value;
     //draw();
     drawAll();
   };
@@ -1045,139 +1105,208 @@ function UI(objectSelected, cameraSelected){
   //CAMERA TESTE 2
     webglLessonsUI.setupSlider("#camX", {value: multCameras.camera[cameraSelected].camPosition[0], slide: updateCameraPosition(0, cameraSelected), min: -200, max: 200});
     webglLessonsUI.setupSlider("#camY", {value: multCameras.camera[cameraSelected].camPosition[1], slide: updateCameraPosition(1, cameraSelected), min: -200, max: 200});
-    webglLessonsUI.setupSlider("#camZ", {value: multCameras.camera[cameraSelected].camPosition[2], slide: updateCameraPosition(2, cameraSelected), min: -200, max: 200});
+    webglLessonsUI.setupSlider("#camZ", {value: multCameras.camera[cameraSelected].camPosition[2], slide: updateCameraPosition(2, cameraSelected), min: -2000, max: 2000});
     webglLessonsUI.setupSlider("#camZoom", {value: multCameras.camera[cameraSelected].zoom, slide: updateCameraZoom(cameraSelected), min: 1, max: 180});
+    webglLessonsUI.setupSlider("#lookAtX", {value: multCameras.camera[cameraSelected].camPositionLookAt[0], slide: updateCameraPositionLookAt(0, cameraSelected), min: -200, max: 200});
+    webglLessonsUI.setupSlider("#lookAtY", {value: multCameras.camera[cameraSelected].camPositionLookAt[1], slide: updateCameraPositionLookAt(1, cameraSelected), min: -200, max: 200});
+      webglLessonsUI.setupSlider("#lookAtZ", {value: multCameras.camera[cameraSelected].camPositionLookAt[2], slide: updateCameraPositionLookAt(2, cameraSelected), min: -200, max: 200});
 
-};
+  //BIEZER CAM
+  webglLessonsUI.setupSlider("#camMidPointX",      {value: multCameras.camera[cameraSelected].midPoint[0], slide: updateBezierMidCam(0, cameraSelected), max: gl.canvas.width });
+  webglLessonsUI.setupSlider("#camMidPointY",      {value: multCameras.camera[cameraSelected].midPoint[1], slide: updateBezierMidCam(1, cameraSelected), max: gl.canvas.height});
+  webglLessonsUI.setupSlider("#camEndPointX",      {value: multCameras.camera[cameraSelected].endPoint[0], slide: updateBezierEndCam(0, cameraSelected), max: gl.canvas.width });
+  webglLessonsUI.setupSlider("#camEndPointY",      {value: multCameras.camera[cameraSelected].endPoint[1], slide: updateBezierEndCam(1, cameraSelected), max: gl.canvas.height});
+  webglLessonsUI.setupSlider("#camT_Bezier",      {value: multCameras.camera[cameraSelected].Tbezier, slide: updateBezierT_Cam(cameraSelected), min: 0, max: 1, step: 0.01, precision: 2});
 
-function drawAll(){
-  webglUtils.resizeCanvasToDisplaySize(gl.canvas);
-
-  // Tell WebGL how to convert from clip space to pixels
-  gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-
-  // Specify the color for clearing <canvas>
-  gl.clearColor(1, 1, 1, 1);
-
-  //gl.clear(gl.COLOR_BUFFER_BIT);
-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-  // turn on depth testing
-  gl.enable(gl.DEPTH_TEST);
-
-  // tell webgl to cull faces
-  gl.enable(gl.CULL_FACE);
-
-  // Tell it to use our program (pair of shaders)
-  gl.useProgram(program);
-
-  //Add for camera
-  //if(cameraOnn){
-    var fieldOfViewRadians = degToRad(multCameras.camera[cameraSelected].zoom);
-    //var cameraAngleRadians = degToRad(0);
-    //var radius = 200;
-    var aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
-    var zNear = 1;
-    var zFar = 2000;
-  //var perspectiveProjectionMatrix = m4.perspective(fieldOfViewRadians, aspect, zNear, zFar);
-  //console.log(perspectiveProjectionMatrix);
-    var perspectiveMatrix = m4.perspective(fieldOfViewRadians, aspect, zNear, zFar);
-
-  //var cameraMatrix = m4.translation(allObjects.teste[objectSelected].translation[0], allObjects.teste[objectSelected].translation[2], allObjects.teste[objectSelected].translation[2]);
-  //var cameraMatrix = m4.yRotation(cameraAngleRadians)
-  //console.log(cameraMatrix);
-  //cameraMatrix = m4.translate(cameraMatrix, 0, 0, radius * 1.5);
-  //console.log(cameraMatrix);
-
-  // Get the camera's postion from the matrix we computed
-  var cameraPosition = [
-    multCameras.camera[cameraSelected].camPosition[0],
-    multCameras.camera[cameraSelected].camPosition[1],
-    multCameras.camera[cameraSelected].camPosition[2],
-    //0, 0, -220,
-  ];
-  //var cameraPosition = [0, 0, -200];
-  var up = [0, 1, 0];
-  var target = [0, 0, 0]
-  
+  };
+  var temp =0;
+  function drawAll(now){
     
-  //LOOKAT
-  var cameraMatrix = m4.lookAt(cameraPosition, target, up);
-  /*
-  var cameraMatrix = m4.translation(
-    //allObjects.teste[objectSelected].translation[0],
-    //allObjects.teste[objectSelected].translation[1],
-    //allObjects.teste[objectSelected].translation[2],
-    -55,
-    0,
-    -75,
-  );
-  */
-  let worldMatrix = m4.yRotation(degToRad(0));
-  worldMatrix = m4.xRotate(worldMatrix, degToRad(180));
-  // center the 'F' around its origin
-  //worldMatrix = m4.translate(worldMatrix, -50, 5, -5);
-  //worldMatrix = m4.translate(worldMatrix, -35, -75, -5);
-  //worldMatrix = m4.translate(worldMatrix, allObjects.teste[0].translation[0], allObjects.teste[objectSelected].translation[1], allObjects.teste[objectSelected].translation[2]);
+    now *= 0.001;
+    var deltaTime = now - then;
+    then = now;
+    console.log("TIME",deltaTime); 
+    webglUtils.resizeCanvasToDisplaySize(gl.canvas);
+    temp += deltaTime;
 
-  // Make a view matrix from the camera matrix.
-  var viewMatrix = m4.inverse(cameraMatrix);
- console.log("inverse->"+viewMatrix);
+    // Tell WebGL how to convert from clip space to pixels
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
-  // create a viewProjection matrix. This will both apply perspective
-  // AND move the world so that the camera is effectively the origin
-  allObjects.teste[objectSelected].matrix = m4.multiply(perspectiveMatrix, viewMatrix);
-//  console.log(viewProjectionMatrix);
-  allObjects.teste[objectSelected].matrix = m4.multiply(allObjects.teste[objectSelected].matrix, worldMatrix);
-  //
-  //
-  //
-  //
-  //
-  //
-  //---------------------
+    // Specify the color for clearing <canvas>
+    gl.clearColor(1, 1, 1, 1);
 
-  console.log("DESENHO 1: " + allObjects.teste[0].matrix);
-//  allObjects.teste[0].matrix = m4.projection(gl.canvas.clientWidth, gl.canvas.clientHeight, 400);
-  /*
-  allObjects.teste[0].matrix = m4.translate(allObjects.teste[0].matrix, allObjects.teste[0].translation[0], allObjects.teste[objectSelected].translation[1], allObjects.teste[objectSelected].translation[2]);
-  allObjects.teste[0].matrix = m4.xRotate(allObjects.teste[0].matrix, allObjects.teste[0].rotation[0]);
-  allObjects.teste[0].matrix = m4.yRotate(allObjects.teste[0].matrix, allObjects.teste[0].rotation[1]);
-  allObjects.teste[0].matrix = m4.zRotate(allObjects.teste[0].matrix, allObjects.teste[0].rotation[2]);
-  allObjects.teste[0].matrix = m4.scale(allObjects.teste[0].matrix, allObjects.teste[0].scale[0], allObjects.teste[0].scale[1], allObjects.teste[0].scale[2]);
-  
-  */
-  /*
-  // Draw 'F's in a circle
-  for (var ii = 0; ii < 5; ++ii) {
-    var angle = ii * Math.PI * 2 / 5;
+    //gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    var x = Math.cos(angle) * radius;
-    var z = Math.sin(angle) * radius;
-    var matrix = m4.translate(viewProjectionMatrix, x, 0, z);
-  
+    // turn on depth testing
+    gl.enable(gl.DEPTH_TEST);
 
-  // Set the matrix.
-  //gl.uniformMatrix4fv(matrixLocation, false, allObjects.teste[0].matrix);
-  gl.uniformMatrix4fv(matrixLocation, false, matrix);
+    // tell webgl to cull faces
+    gl.enable(gl.CULL_FACE);
+
+    // Tell it to use our program (pair of shaders)
+    gl.useProgram(program);
+
+    //Add for camera
+    if(multCameras.camera[cameraSelected].cameraOnn){
+      var fieldOfViewRadians = degToRad(multCameras.camera[cameraSelected].zoom);
+      var aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
+      var zNear = 1;
+      var zFar = 2000;
+
+      var perspectiveMatrix = m4.perspective(fieldOfViewRadians, aspect, zNear, zFar);
+
+      if(multCameras.camera[cameraSelected].lookAtOnn){
+        // Get the camera's postion from the matrix we computed
+        var cameraPosition = [
+          multCameras.camera[cameraSelected].camPositionLookAt[0],
+          multCameras.camera[cameraSelected].camPositionLookAt[1],
+          multCameras.camera[cameraSelected].camPositionLookAt[2],
+        ];
+      /*
+      }
+      else if(multCameras.camera[cameraSelected].followObject){
+        var cameraPosition = [
+          multCameras.camera[cameraSelected].camPosition[0],
+          multCameras.camera[cameraSelected].camPosition[1],
+          multCameras.camera[cameraSelected].camPosition[2],
+        ];
+        */
+      }else{
+        var cameraPosition = [
+          //317,281,0,
+          0,0, 200,
+        ];
+      }
+      //var cameraPosition = [0, 0, -200];
+      var up = [0, -1, 0];
+      var target = [
+        0, 0, 0
+        //-317,-281,-0,
+        ];
+      
 
 
-  //Tem o jeito que e bem explicadinho mas vou deixar assim no momento
-  gl.drawArrays(gl.TRIANGLES, 0, n);
-  }
-  */
-  //var matrixAham = m4.translate(viewProjectionMatrix, allObjects.teste[objectSelected].translation[0], allObjects.teste[objectSelected].translation[1], allObjects.teste[objectSelected].translation[2]);
-  //console.log(matrixAham);
-  gl.uniformMatrix4fv(matrixLocation, false, allObjects.teste[objectSelected].matrix);
+      //LOOKAT
+      var cameraMatrix = m4.lookAt(cameraPosition, target, up);
+
+      let worldMatrix; 
+      worldMatrix = m4.yRotation(degToRad(0));
+      if(!multCameras.camera[cameraSelected].lookAtOnn){ 
+        worldMatrix = m4.yRotation(degToRad(180));
+        //worldMatrix = m4.xRotation(degToRad(45));
+        worldMatrix = m4.translate(worldMatrix, -317, -281, 200);
+      }else{
+        //worldMatrix = m4.translate(worldMatrix, -317, -281, 200);
+        // Origin in F
+        //worldMatrix = m4.xRotate(worldMatrix, degToRad(180));
+        //worldMatrix = m4.yRotate(worldMatrix, degToRad(150));
+        worldMatrix = m4.translate(worldMatrix, -317, -281, 0);
+        //worldMatrix = m4.yRotate(worldMatrix, degToRad(7));
+        //worldMatrix = m4.translate(worldMatrix, -35, -75, -5);
+        //worldMatrix = m4.translate(worldMatrix, 0, 0, 0);
+      
+      };
+
+      // center the 'F' around its origin
+      if(!multCameras.camera[cameraSelected].lookAtOnn){
+        console.log("WORD");
+        //worldMatrix = m4.translate(worldMatrix, -50, 5, -5);
+        //worldMatrix = m4.translate(worldMatrix, -35, -75, -5);
+      worldMatrix = m4.translate(worldMatrix, multCameras.camera[cameraSelected].camPosition[0], multCameras.camera[cameraSelected].camPosition[1], multCameras.camera[cameraSelected].camPosition[2]);
+    }
+
+    // Make a view matrix from the camera matrix.
+    var viewMatrix = m4.inverse(cameraMatrix);
+    //console.log("inverse->"+viewMatrix);
+
+    // create a viewProjection matrix. This will both apply perspective
+    // AND move the world so that the camera is effectively the origin
+    var i = 0;
+    for(i=0; i<allObjects.teste.length; i++){
+      allObjects.teste[i].matrix = m4.multiply(perspectiveMatrix, viewMatrix);
+      //  console.log(viewProjectionMatrix);
+      allObjects.teste[i].matrix = m4.multiply(allObjects.teste[i].matrix, worldMatrix);
+      allObjects.teste[i].matrix = m4.translate(allObjects.teste[i].matrix,
+        allObjects.teste[i].translation[0],
+        allObjects.teste[i].translation[1],
+        allObjects.teste[i].translation[2],
+      );
+      
+      allObjects.teste[i].matrix = m4.xRotate(allObjects.teste[i].matrix,
+        allObjects.teste[i].rotation[0]);
+      allObjects.teste[i].matrix = m4.yRotate(allObjects.teste[i].matrix,
+        allObjects.teste[i].rotation[1]);
+      allObjects.teste[i].matrix = m4.zRotate(allObjects.teste[i].matrix,
+        allObjects.teste[i].rotation[2]);
+      allObjects.teste[i].matrix = m4.scale(allObjects.teste[i].matrix,
+        allObjects.teste[i].scale[0],
+        allObjects.teste[i].scale[1],
+        allObjects.teste[i].scale[2],
+      );
+      
+      gl.uniformMatrix4fv(matrixLocation, false, allObjects.teste[i].matrix);
+
+      gl.drawArrays(gl.TRIANGLES, 0, n);
+      console.log("Olha", 
+        allObjects.teste[objectSelected].translation[0],
+        allObjects.teste[objectSelected].translation[1],
+        allObjects.teste[objectSelected].translation[2],
+        allObjects.teste[objectSelected].rotation[0],
+        allObjects.teste[objectSelected].rotation[1],
+        allObjects.teste[objectSelected].rotation[2],
+      );
+      console.log("AHAM",allObjects);
+    }
+  }else{
+    //console.log("AQUI");
+    var i =0;
+    console.log("OLHA", allObjects.teste.length);
+    for (i = 0; i < allObjects.teste.length; i++){
+      allObjects.teste[i].matrix = m4.projection(gl.canvas.clientWidth, gl.canvas.clientHeight, 500);
+      allObjects.teste[i].matrix = m4.translate(allObjects.teste[i].matrix, allObjects.teste[i].translation[0], allObjects.teste[i].translation[1], allObjects.teste[i].translation[2]);
+      allObjects.teste[i].matrix = m4.xRotate(allObjects.teste[i].matrix, allObjects.teste[i].rotation[0]);
+      allObjects.teste[i].matrix = m4.yRotate(allObjects.teste[i].matrix, allObjects.teste[i].rotation[1]);
+      allObjects.teste[i].matrix = m4.zRotate(allObjects.teste[i].matrix, allObjects.teste[i].rotation[2]);
+      allObjects.teste[i].matrix = m4.scale(allObjects.teste[i].matrix, allObjects.teste[i].scale[0], allObjects.teste[i].scale[1], allObjects.teste[i].scale[2]);
+      //For rotation in center or point select
+      //allObjects.teste[i].matrix = m4.translate(allObjects.teste[i].matrix, -50, -75, allObjects.teste[i].translation[2]);
+
+      // Set the matrix.
+      gl.uniformMatrix4fv(matrixLocation, false, allObjects.teste[i].matrix);
+
+
+      //Tem o jeito que e bem explicadinho mas vou deixar assim no momento
+      gl.drawArrays(gl.TRIANGLES, 0, n);
+
+      console.log("Olha sem camera", 
+        allObjects.teste[objectSelected].translation[0],
+        allObjects.teste[objectSelected].translation[1],
+        allObjects.teste[objectSelected].translation[2],
+        allObjects.teste[objectSelected].rotation[0],
+        allObjects.teste[objectSelected].rotation[1],
+        allObjects.teste[objectSelected].rotation[2],
+      );
+
+    }
+  };
+
+  //gl.uniformMatrix4fv(matrixLocation, false, allObjects.teste[objectSelected].matrix);
   //gl.uniformMatrix4fv(matrixLocation, false, allObjects.teste[objectSelected].matrix);
 
 
   //Tem o jeito que e bem explicadinho mas vou deixar assim no momento
-  gl.drawArrays(gl.TRIANGLES, 0, n);
+  //gl.drawArrays(gl.TRIANGLES, 0, n);
+
+  if(temp <= 7){
+    //requestAnimationFrame(drawAll);
+  }
 };
 
 init();
 var n = drawFist();
+var then = 0;
+var rotationSpeed = 1;
 drawAll();
 UI(objectSelected, cameraSelected);
 
@@ -1204,8 +1333,10 @@ function add() {
     midPointBezier: [],
     Tbezier,
   }
-  translation2 = [150, 150, 0];
-  rotation2 = [degToRad(40), degToRad(25), degToRad(325)];
+  translation2 = [317, 281, 0];
+  rotation2 = [degToRad(155), degToRad(0), degToRad(39)];
+  //translation2 = [150, 150, 0];
+  //rotation2 = [degToRad(40), degToRad(25), degToRad(325)];
   scale2 = [1, 1, 1];
     teste.translation = translation2;
     teste.rotation = rotation2;
@@ -1259,6 +1390,8 @@ function addCamera() {
   var camera = {
     camPosition : [0, 0, -200],
     zoom: 60,
+    midPoint: [0, 0, 0],
+    endPoint: [0, 0, 0],
   };
   multCameras.camera[opt.value] = camera;
   cameraSelected = opt.value;
@@ -1281,12 +1414,317 @@ function removeCamera() {
   UI(objectSelected, cameraSelected);
   
 };
-var onn = 0;
-function onnAndOff(){
-  console.log("ONN", onn);
-  if (!onn)
-    onn = 1;
+
+function onnAndOffCamera(){
+  console.log("TO AQUI");
+  console.log("camera", multCameras.camera[cameraSelected].cameraOnn);
+  if (!multCameras.camera[cameraSelected].cameraOnn)
+    multCameras.camera[cameraSelected].cameraOnn = 1;
+  else{
+    multCameras.camera[cameraSelected].cameraOnn = 0;
+    multCameras.camera[cameraSelected].lookAtOnn = 0;
+  }
+  console.log("camera", multCameras.camera[cameraSelected].camera);
+  drawAll();
+}
+
+function onnAndOffLookAt(){
+  console.log("TO AQUI lookAt");
+  console.log("lookAtOnn", multCameras.camera[cameraSelected].lookAtOnn);
+  if (!multCameras.camera[cameraSelected].lookAtOnn)
+    multCameras.camera[cameraSelected].lookAtOnn = 1;
   else
-    onn = 0;
-  console.log("ONN", onn);
+    multCameras.camera[cameraSelected].lookAtOnn = 0;
+  console.log("lookAtOnn", multCameras.camera[cameraSelected].lookAtOnn);
+  drawAll();
+}
+
+function onnAndOffFollowObject(){
+  console.log("TO AQUI followObject");
+  console.log("lookAtOnn", multCameras.camera[cameraSelected].followObject);
+  if (!multCameras.camera[cameraSelected].followObject)
+    multCameras.camera[cameraSelected].followObject = 1;
+  else
+    multCameras.camera[cameraSelected].followObject = 0;
+  console.log("lookAtOnn", multCameras.camera[cameraSelected].followObject);
+  drawAll();
+}
+
+function addTranslationForAnimation(){
+  var listAnimation = {
+    translationX,
+    translationY,
+    translationZ,
+    rotationX,
+    rotationY,
+    rotationZ,
+    scaleX,
+    scaleY,
+    scaleZ,
+  };
+
+  var sel = document.getElementById('listForAnimation');
+  var opt = document.createElement('li');
+
+  if((document.getElementById("valEixo").value) == "x"){
+    listAnimation.translationX = document.getElementById("valAnimation").value;
+    listAnimation.isTransformation = "translationX";
+    opt.appendChild( document.createTextNode(String(listAnimation.translationX).concat(' - Tranlation in X')));
+    console.log("AHAM", listAnimation.translationX);
+  }else if((document.getElementById("valEixo").value) == "y"){
+    listAnimation.translationY = document.getElementById("valAnimation").value;
+    listAnimation.isTransformation = "translationY";
+    opt.appendChild( document.createTextNode(String(listAnimation.translationY).concat(' - Tranlation in Y')));
+    console.log("AHAM", listAnimation.translationY);
+
+  }else if((document.getElementById("valEixo").value) == "z"){
+    listAnimation.translationZ = document.getElementById("valAnimation").value;
+    listAnimation.isTransformation = "translationZ";
+    opt.appendChild( document.createTextNode(String(listAnimation.translationZ).concat(' - Tranlation in Z')));
+    console.log("AHAM", listAnimation.translationZ);
+  }else{
+    console.log("Error select a aixs");
+    return;
+  }
+
+  orderAnimation[(orderAnimation.length)] = listAnimation;
+  console.log("OLHA", orderAnimation);
+
+
+  opt.value = sel.length;
+
+  sel.appendChild(opt); 
+  return;
+};
+
+function addRotationForAnimation(){
+  var listAnimation = {
+    translationX,
+    translationY,
+    translationZ,
+    rotationX,
+    rotationY,
+    rotationZ,
+    scaleX,
+    scaleY,
+    scaleZ,
+  };
+
+  var sel = document.getElementById('listForAnimation');
+  var opt = document.createElement('li');
+
+  if((document.getElementById("valEixo").value) == "x"){
+    listAnimation.rotationX = document.getElementById("valAnimation").value;
+    listAnimation.isTransformation = "rotationX";
+    opt.appendChild( document.createTextNode(String(listAnimation.rotationX).concat(' - Rotation in X')));
+    console.log("AHAM", listAnimation.rotationX);
+
+  }else if((document.getElementById("valEixo").value) == "y"){
+    listAnimation.rotationY = document.getElementById("valAnimation").value;
+    listAnimation.isTransformation = "rotationY";
+    opt.appendChild( document.createTextNode(String(listAnimation.rotationY).concat(' - Rotation in Y')));
+    console.log("AHAM", listAnimation.rotationY);
+
+  }else if((document.getElementById("valEixo").value) == "z"){
+    listAnimation.rotationZ = document.getElementById("valAnimation").value;
+    listAnimation.isTransformation = "rotationZ";
+    opt.appendChild( document.createTextNode(String(listAnimation.rotationZ).concat(' - Rotation in Z')));
+    console.log("AHAM", listAnimation.rotationZ);
+  }else{
+    console.log("Error select a aixs");
+    return;
+  }
+  orderAnimation[(orderAnimation.length)] = listAnimation;
+  console.log("OLHA", orderAnimation);
+  opt.value = sel.length;
+
+  sel.appendChild(opt); 
+  return;
+};
+
+function addScaleForAnimation(){
+  var listAnimation = {
+    translationX,
+    translationY,
+    translationZ,
+    rotationX,
+    rotationY,
+    rotationZ,
+    scaleX,
+    scaleY,
+    scaleZ,
+  };
+
+  var sel = document.getElementById('listForAnimation');
+  var opt = document.createElement('li');
+
+  if((document.getElementById("valEixo").value) == "x"){
+    listAnimation.scaleX = document.getElementById("valAnimation").value;
+    listAnimation.isTransformation = "scaleX";
+    opt.appendChild( document.createTextNode(String(listAnimation.scaleX).concat(' - Scale in X')));
+    console.log("AHAM", listAnimation.scaleX);
+
+  }else if((document.getElementById("valEixo").value) == "y"){
+    listAnimation.scaleY = document.getElementById("valAnimation").value;
+    listAnimation.isTransformation = "scaleY";
+    opt.appendChild( document.createTextNode(String(listAnimation.scaleY).concat(' - Scale in Y')));
+    console.log("AHAM", listAnimation.scaleY);
+
+  }else if((document.getElementById("valEixo").value) == "z"){
+    listAnimation.scaleZ = document.getElementById("valAnimation").value;
+    listAnimation.isTransformation = "scaleZ";
+    opt.appendChild( document.createTextNode(String(listAnimation.scaleZ).concat(' - Scale in Z')));
+    console.log("AHAM", listAnimation.scaleZ);
+  }else{
+    console.log("Error select a aixs");
+    return;
+  }
+  orderAnimation[(orderAnimation.length)] = listAnimation;
+  console.log("OLHA", orderAnimation);
+  opt.value = sel.length;
+
+  sel.appendChild(opt); 
+  return;
+};
+
+
+//INTERFACE
+var acc = document.getElementsByClassName("accordion");
+var i;
+
+for (i = 0; i < acc.length; i++) {
+  acc[i].addEventListener("click", function() {
+    /* Toggle between adding and removing the "active" class,
+    to highlight the button that controls the panel */
+    this.classList.toggle("active");
+
+    /* Toggle between hiding and showing the active panel */
+    var panel = this.nextElementSibling;
+    if (panel.style.display === "block") {
+      panel.style.display = "none";
+    } else {
+      panel.style.display = "block";
+    }
+  });
+} 
+
+var then = 0;
+function startAnimation(){
+  then = 0;
+  requestAnimationFrame(drawAnimation);
+  return;
+};
+
+var fazIsso = 200 / 5;
+var temp =0;
+var now = 0;
+var index = 0;
+function drawAnimation(now){
+  now *= 0.001;
+  var deltaTime = now - then;
+  temp = temp + deltaTime;
+  var control = orderAnimation.length;
+  console.log("TAMANHO", orderAnimation.length);
+  if(then == 0){
+    then = now;
+    temp = 0;
+    requestAnimationFrame(drawAnimation);
+  }else{
+    var step = 0;
+    var timeTransformationAnimation = 5;
+    if(orderAnimation[index].isTransformation == "translationX"){
+      step = orderAnimation[index].translationX / timeTransformationAnimation;
+      allObjects.teste[objectSelected].translation[0] += step * deltaTime;
+    }else if(orderAnimation[index].isTransformation == "translationY"){
+      step = orderAnimation[index].translationY / timeTransformationAnimation;
+      allObjects.teste[objectSelected].translation[1] += step * deltaTime;
+    }else if(orderAnimation[index].isTransformation == "translationZ"){
+      step = orderAnimation[index].translationZ / timeTransformationAnimation;
+      allObjects.teste[objectSelected].translation[2] += step * deltaTime;
+    }else if(orderAnimation[index].isTransformation == "rotationX"){
+      //Regra de tres
+      step = theRuleOfThree(orderAnimation[index].rotationX);
+      allObjects.teste[objectSelected].rotation[0] += step * deltaTime;
+    }else if(orderAnimation[index].isTransformation == "rotationY"){
+      //Regra de tres
+      step = theRuleOfThree(orderAnimation[index].rotationY);
+      allObjects.teste[objectSelected].rotation[1] += step * deltaTime;
+    }else if(orderAnimation[index].isTransformation == "rotationZ"){
+      //Regra de tres
+      step = theRuleOfThree(orderAnimation[index].rotationZ);
+      allObjects.teste[objectSelected].rotation[2] += step * deltaTime;
+    }else if(orderAnimation[index].isTransformation == "scaleX"){
+      step = orderAnimation[index].scaleX / timeTransformationAnimation;
+      allObjects.teste[objectSelected].scale[0] += step * deltaTime;
+    }else if(orderAnimation[index].isTransformation == "scaleY"){
+      step = orderAnimation[index].scaleY / timeTransformationAnimation;
+      allObjects.teste[objectSelected].scale[1] += step * deltaTime;
+    }else if(orderAnimation[index].isTransformation == "scaleZ"){
+      step = orderAnimation[index].scaleZ / timeTransformationAnimation;
+      allObjects.teste[objectSelected].scale[2] += step * deltaTime;
+    };
+    webglUtils.resizeCanvasToDisplaySize(gl.canvas);
+    then = now;
+
+    // Tell WebGL how to convert from clip space to pixels
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+
+    // Specify the color for clearing <canvas>
+    gl.clearColor(1, 1, 1, 1);
+
+    //gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    // turn on depth testing
+    gl.enable(gl.DEPTH_TEST);
+
+    // tell webgl to cull faces
+    gl.enable(gl.CULL_FACE);
+
+    // Tell it to use our program (pair of shaders)
+    gl.useProgram(program);
+
+    var i =0;
+    for (i = 0; i < allObjects.teste.length; i++){
+      allObjects.teste[i].matrix = m4.projection(gl.canvas.clientWidth, gl.canvas.clientHeight, 500);
+      allObjects.teste[i].matrix = m4.translate(allObjects.teste[i].matrix, allObjects.teste[i].translation[0], allObjects.teste[i].translation[1], allObjects.teste[i].translation[2]);
+      allObjects.teste[i].matrix = m4.xRotate(allObjects.teste[i].matrix, allObjects.teste[i].rotation[0]);
+      allObjects.teste[i].matrix = m4.yRotate(allObjects.teste[i].matrix, allObjects.teste[i].rotation[1]);
+      allObjects.teste[i].matrix = m4.zRotate(allObjects.teste[i].matrix, allObjects.teste[i].rotation[2]);
+      allObjects.teste[i].matrix = m4.scale(allObjects.teste[i].matrix, allObjects.teste[i].scale[0], allObjects.teste[i].scale[1], allObjects.teste[i].scale[2]);
+
+      // Set the matrix.
+      gl.uniformMatrix4fv(matrixLocation, false, allObjects.teste[i].matrix);
+
+
+      //Tem o jeito que e bem explicadinho mas vou deixar assim no momento
+      gl.drawArrays(gl.TRIANGLES, 0, n);
+
+    };
+
+    if( temp < 5 ){
+      requestAnimationFrame(drawAnimation);
+    }else{
+      index += 1;
+      if(index < control){
+        temp = 0;
+        requestAnimationFrame(drawAnimation)
+      }else
+        index = 0;
+        return;
+    };
+  };
+};
+
+function theRuleOfThree(step){
+  var x = 360;
+  var value = 1.2 * step;
+  return value/x;
+};
+function sleep(milliseconds) {
+  const date = Date.now();
+  let currentDate = null;
+  do {
+    currentDate = Date.now();
+  } while (currentDate - date < milliseconds);
 }

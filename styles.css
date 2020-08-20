@@ -1,113 +1,272 @@
-@import url("https://webgl2fundamentals.org/webgl/resources/webgl-tutorials.css");
 * { margin: 0; padding: 0; }
-html , body { width:100%; height:100%; }
-canvas { 
-  display: block; 
-  width: 400px;
-  height: 400px;
+html , body { 
+  width:100%; 
+  height:100%; 
 }
-fieldset {
-  border: 0;
+.row{
+  width: 100%;
+  display: flex;
 }
-label {
+.col{
+  width:100%;
+  height: 500px;
+  background-color: #FF7F50;
+}
+.uiObject{
+  display: flex;;
+  width:50%;
+  /*-moz-transform: rotate(-90deg);*/
+  /*-webkit-transform: rotate(-90deg);*/
+}
+.buttons-cam{
+  display: flex;;
+  width:50%;
+  padding-top: 15px;
+}
+.switch-button-1, .switch-button-2, .switch-button-3{
+  padding-left: 100px;
+}
+.switch-button-text-1, .switch-button-text-2, .switch-button-text-3{
+  padding-left: 120px;
+}
+.list-camera{
+  display: flex;
+}
+#camX, #camY, #camZ, #camZoom, #camMidPointX, #camMidPointY, #camEndPointX, #camEndPointY, #camT_Bezier { 
+  margin-top: 14px;
+  margin-bottom: 14px;
+  border-style: solid double double;
+  border-color: black;
+  margin-left: 30px;
+  font-family: Verdana, sans-serif;
+  writing-mode: vertical-lr;
+  -webkit-writing-mode: vertical-lr;
+  -ms-writing-mode: vertical-lr;
+  /*-moz-transform: rotate(-90deg);
+  -webkit-transform: rotate(-90deg);*/
+}
+.virouclasse{ 
+  margin-left: 30px;
+  margin-top: 14px;
+  margin-bottom: 14px;
+  border-style: solid double double;
+  border-color: black;
+  font-family: Verdana, sans-serif;
+  writing-mode: vertical-lr;
+  -webkit-writing-mode: vertical-lr;
+  -ms-writing-mode: vertical-lr;
+  /*-moz-transform: rotate(-90deg);
+  -webkit-transform: rotate(-90deg);*/
+}
+.gman-widget-value {
+  float: right;
+  font-size: small;
+  order: 1;
+}
+.gman-slider-upper.active {
+  background: green;
+  color:black;
+}
+.gman-slider-outer, .gman-widget-outer {
+  background: #0fb6eb;
+  width:20px;
+}
+.gman-widget-slider, .gman-widget-checkbox, .gman-widget-select {
+  background: green;
+  color:green;
+}
+
+
+.buttonRemove{
+  background-color: #ca2222;
+  color: white;
+  border-radius: 50px;
+  height: 40px;
+  width: 100px;
+  border: none;
+  font-size: 12px;
+  font-family: Verdana, sans-serif;
+  cursor: pointer;
+}
+.buttonRemove:hover {
+  background-color: #951818;
+}
+.buttonAdd{
+  background-color: #0fb6eb;
+  color: white;
+  border-radius: 50px;
+  height: 40px;
+  width: 100px;
+  border: none;
+  font-size: 12px;
+  cursor: pointer;
+ font-family: Verdana, sans-serif;
+}
+.buttonAdd:hover {
+  background-color: #0b8bb3;
+}
+.listOfCameras{
+  padding-left: 160px;
+  margin-bottom: 15px;
+}
+#listCameras{
+  cursor: pointer;
+  border: none;
+  border-radius: 50px;
+  height: 40px;
+  width: 100px;
+  font-size: 12px;
+  font-family: Verdana, sans-serif;
+}
+/*
+.switch-button-text-3{
+  margin-left:130px;
+}*/
+canvas{
+  width: 100%;
+  height: 500px;
+}
+ /* Style the buttons that are used to open and close the accordion panel */
+.accordion {
+  background-color: #FF7F50;
+  color: white;
+  font-size: 20px;
+  font-weight: bolder;
+  cursor: pointer;
+  padding: 18px;
+  width: 100%;
+  text-align: center;
+  border: none;
+  outline: none;
+  transition: 0.4s;
+}
+
+/* Add a background color to the button if it is clicked on (add the .active class with JS), and when you move the mouse over it (hover) */
+.active, .accordion:hover {
+  background-color: #e25b45;
+}
+
+/* Style the accordion panel. Note: hidden by default */
+.panel {
+  padding: 0 18px;
+  background-color:#FFFAF0; 
+  /*#fac172;*/
+  display: none;
+  overflow: hidden;
+  width: 100%;
+} 
+
+
+/* Style the tab */
+.tab {
+  float: left;
+  border: 1px solid #ccc;
+  background-color: #f1f1f1;
+  width: 30%;
+  height: 300px;
+}
+
+/* Style the buttons that are used to open the tab content */
+.tab button {
   display: block;
-  margin: 30px 0 0 0;
-}
-.overflow {
-  height: 200px;
-}
-
-/*Adiciona border-box para o input e para os pseudo-elementos*/
-input[type=checkbox], input[type=checkbox]::after, input[type=checkbox]::before {
-    box-sizing: border-box;
-}
-
-/*Estiliza e remove a aparencia padrão do elemento*/
-input[type=checkbox] {
-    outline: none;
-    position: relative;
-    z-index: 1;
-    margin: 2px;
-    padding: 0;
-    cursor: pointer;
-    width: 48px;
-    height: 24px;
-    overflow: hidden;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
+  background-color: inherit;
+  color: black;
+  padding: 22px 16px;
+  width: 100%;
+  border: none;
+  outline: none;
+  text-align: left;
+  cursor: pointer;
+  transition: 0.3s;
 }
 
-/*cria os elementos before e after*/
-input[type=checkbox]::before, input[type=checkbox]::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    z-index: 2;
-
-    /*efeito animado*/
-    transition: left .15s cubic-bezier(.25, .8, .25, .1),
-                transform .15s ease-in;
+/* Change background color of buttons on hover */
+.tab button:hover {
+  background-color: #ddd;
 }
 
-/*Cor padrão de quando o elemento não esta selecionado*/
-input[type=checkbox]::before {
-    background-color: #ccc;
-    width: 100%;
-    height: 100%;
-    border-radius: 28px;
+/* Create an active/current "tab button" class */
+.tab button.active {
+  background-color: #ccc;
 }
 
-/*estiliza para parecer um botão toggle*/
-input[type=checkbox]::after {
-    margin: 2px 0 0 2px;
-    background: #fff;
-    width: 20px;
-    height: 20px;
-    border-radius: 100%;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+/* Style the tab content */
+.tabcontent {
+  float: left;
+  padding: 0px 12px;
+  border: 1px solid #ccc;
+  width: 70%;
+  border-left: none;
+  height: 300px;
 }
 
-/*troca a cor se estiver com a propriedade checked no html ou o usuário "checar"*/
-input[type=checkbox]:checked::before {
-    background-color: #75a940;
+/* Switch on and off */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 90px;
+  height: 34px;
 }
 
-/*muda a posição do botão toggle se estiver checado*/
-input[type=checkbox]:checked::after {
-    left: 24px;
+.switch input {display:none;}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ca2222;
+  -webkit-transition: .4s;
+  transition: .4s;
+   border-radius: 34px;
 }
 
-/*Efeito opicional de quando preciona o botão*/
-input[type=checkbox]:active::after {
-    transform: scale(1.15, 0.85);
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+  border-radius: 50%;
 }
 
-/*Se o input tiver com o atributo disabled a cor é alterada*/
-input[type=checkbox]:disabled::before {
-     background-color: #b1b4b7 !important;
+input:checked + .slider {
+  background-color: #0fb6eb;
 }
 
-/*Se o input tiver com o atributo disabled a cor é alterada*/
-input[type=checkbox]:disabled::after {
-     background-color: #dcd8d8 !important;
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
 }
 
-/*OUTRAS CORES = Cores alternativas*/
-
-input[type=checkbox].red:checked::before {
-     background-color: #fd4554;
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(55px);
 }
 
-input[type=checkbox].blue:checked::before {
-     background-color: #0f90dc;
+/*------ ADDED CSS ---------*/
+.slider:after
+{
+ content:'OFF';
+ color: white;
+ display: block;
+ position: absolute;
+ transform: translate(-50%,-50%);
+ top: 50%;
+ left: 50%;
+ font-size: 10px;
+ font-family: Verdana, sans-serif;
 }
 
-input[type=checkbox].red:checked::before {
-     background-color: #fd4554;
+input:checked + .slider:after
+{
+  content:'ON';
 }
 
-input[type=checkbox].purple:checked::before {
-     background-color: #9e3eff;
-}
+/*--------- END --------*/

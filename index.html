@@ -20,63 +20,137 @@
       <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
   </head>
   <body>
-    <canvas id="canvas"></canvas>
-    <div id="uiContainer">
-      <div id="ui">
-        <div id="x"></div>
-        <div id="y"></div>
-        <div id="z"></div>
-        <div id="angleX"></div>
-        <div id="angleY"></div>
-        <div id="angleZ"></div>
-        <div id="scaleX"></div>
-        <div id="scaleY"></div>
-        <div id="scaleZ"></div>
-        <div id="endpointBiezerX"></div>
-        <div id="endpointBiezerY"></div>
-        <div id="midpointBiezerX"></div>
-        <div id="midpointBiezerY"></div>
-        <div id="T_Bezier"></div>
-        <div id="pointAngleY"></div>
-        <div id="CAMERA"></div>
-        <div id="camX"></div>
-        <div id="camY"></div>
-        <div id="camZ"></div>
-        <div id="camZoom"></div>
-      </div>
-    </div>
-    <!-- O segundo valor estará selecionado inicialmente -->
-    <div>
-    <select id="listObjects" name="select" onchange="selectObject(this.value)">
-      <option value="0">0 - Object</option>
-    </select>
-    </div>
-    <div>
-    <button type="button" onclick="add()">Insert option</button>
-    <button type="button" onclick="remove()">Remove option</button>
-    </div>
-    <div>
-    <select id="listCameras" name="selectCamera" onchange="selectCamera(this.value)">
-      <option value="0">0 - Camera</option>
-    </select>
-    </div>
-    <div>
-    <button type="button" onclick="addCamera()">Insert option</button>
-    <button type="button" onclick="removeCamera()">Remove option</button>
-    </div>
+    <section class="row">
 
-    <div>
-      <!-- Rounded switch -->
-        <input type="checkbox" class="green" onclick="onnAndOff()">
-    </div>
-    <div>
-      <input id="toggle-one" checked type="checkbox">
-      <script>
-        $(function() {
-          $('#toggle-one').bootstrapToggle();
-        })
-      </script>
-    </div>
+      <div class="col">
+        <button class="accordion">Object</button>
+        <div class="panel">
+          <div>
+            <select id="listObjects" name="select" onchange="selectObject(this.value)">
+              <option value="0">0 - Object</option>
+            </select>
+            <button type="button" onclick="add()">Insert option</button>
+            <button type="button" onclick="remove()">Remove option</button>
+          </div>
+          <div class="uiObject" class="vertical">
+            
+            <div class="virouclasse" id="x"></div>
+            <div class="virouclasse" id="y"></div>
+            <div class="virouclasse" id="z"></div>
+
+            <div class="virouclasse"  id="angleX"></div>
+            <div class="virouclasse" id="angleY"></div>
+            <div class="virouclasse" id="angleZ"></div>
+
+            <div class="virouclasse" id="scaleX"></div>
+            <div class="virouclasse" id="scaleY"></div>
+            <div class="virouclasse" id="scaleZ"></div>
+
+          </div>
+          <div class="uiObject">
+          </div>
+          <div class="uiObject">
+          </div>
+          <div class="uiObject">
+            <div class="virouclasse" id="endpointBiezerX"></div>
+            <div class="virouclasse" id="endpointBiezerY"></div>
+            <div class="virouclasse" id="midpointBiezerX"></div>
+            <div class="virouclasse" id="midpointBiezerY"></div>
+            <div class="virouclasse" id="T_Bezier"></div>
+          </div>
+          <div class="uiObject">
+          </div>
+          <div class="uiObject">
+          </div>
+
+        </div>
+
+        <button class="accordion">Cameras</button>
+        <div class="panel">
+          <div class="buttons-cam">
+              <div class="switch-button-1">
+              <label class="switch">
+                <input type="checkbox" id="togBtn" onchange="onnAndOffCamera()">
+                <div class="slider round"></div>
+              </label>
+              </div>
+            
+            <div class="switch-button-2">
+              <label class="switch">
+                <input type="checkbox" id="togBtn" onchange="onnAndOffLookAt()">
+                <div class="slider round"></div>
+              </label>
+            </div>
+            <div class="switch-button-3">
+              <label class="switch">
+                <input type="checkbox" id="togBtn" onchange="onnAndOffFollowObject()">
+                <div class="slider round"></div>
+              </label>
+            </div>
+          </div>
+          <div class="buttons-cam">
+            <div class="switch-button-text-1">
+              <p>Camera<p>
+            </div>
+            <div class="switch-button-text-2">
+              <p>LookAt<p>
+            </div>
+            <div class="switch-button-text-3">
+              <p>FollowObject<p>
+            </div>
+          </div>
+          <div class="uiObject">
+            <div id="camZoom"></div>
+            <div id="camX"></div>
+            <div id="camY"></div>
+            <div id="camZ"></div>
+            <div id="camMidPointX"></div>
+            <div id="camMidPointY"></div>
+            <div id="camEndPointX"></div>
+            <div id="camEndPointY"></div>
+            <div id="camT_Bezier"></div>
+          </div>
+          <div class="uiObject">
+            <div class="virouclasse" id="lookAtX"></div>
+            <div class="virouclasse" id="lookAtY"></div>
+            <div class="virouclasse" id="lookAtZ"></div>
+          </div>
+          <div class="listOfCameras">
+            <select id="listCameras" name="selectCamera" onchange="selectCamera(this.value)">
+              <option value="0">0 - Camera</option>
+            </select>
+
+            <button class="buttonAdd" type="button" onclick="addCamera()">Insert option</button>
+            <button class="buttonRemove" type="button" onclick="removeCamera()">Remove option</button>
+          </div>
+        </div>
+
+        <button class="accordion">Animation</button>
+        <div class="panel">
+          <p>Lorem ipsum...</p>
+          <div>
+            <input id="valAnimation" type="number" label="Digita um valor">
+            <input id="valEixo" type="text" label="Escolha o Eixo">
+            <button onclick="addTranslationForAnimation()">Translation</button>
+            <button onclick="addRotationForAnimation()">Rotation</button>
+            <button onclick="addScaleForAnimation()">Scale</button>
+          </div>
+
+          <div>
+            <ul id="listForAnimation" name="viewAnimation">
+            </ul>
+          </div>
+          <div>
+            <button onclick="startAnimation()">Start Animation</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="col">
+        <canvas id="canvas"></canvas>
+      </div>
+    </section>
+<!--
 
     <div class="widget">
       <fieldset>
@@ -89,5 +163,7 @@
         <input type="radio" name="radio-1" id="radio-3">
       </fieldset>
     </div>
+-->
+
   </body>
 </html>
