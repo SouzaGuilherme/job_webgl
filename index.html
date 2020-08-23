@@ -25,12 +25,12 @@
       <div class="col">
         <button class="accordion">Object</button>
         <div class="panel">
-          <div>
+          <div class="listOfCameras">
             <select id="listObjects" name="select" onchange="selectObject(this.value)">
               <option value="0">0 - Object</option>
             </select>
-            <button type="button" onclick="add()">Insert option</button>
-            <button type="button" onclick="remove()">Remove option</button>
+            <button class="buttonAdd" type="button" onclick="addObject()">Insert option</button>
+            <button class="buttonRemove" type="button" onclick="removeObject()">Remove option</button>
           </div>
           <div class="uiObject" class="vertical">
             
@@ -104,13 +104,16 @@
             <div id="camX"></div>
             <div id="camY"></div>
             <div id="camZ"></div>
+            <div id="camRotationX"></div>
+            <div id="camRotationY"></div>
+            <div id="camRotationZ"></div>
+          </div>
+          <div class="uiObject">
             <div id="camMidPointX"></div>
             <div id="camMidPointY"></div>
             <div id="camEndPointX"></div>
             <div id="camEndPointY"></div>
             <div id="camT_Bezier"></div>
-          </div>
-          <div class="uiObject">
             <div class="virouclasse" id="lookAtX"></div>
             <div class="virouclasse" id="lookAtY"></div>
             <div class="virouclasse" id="lookAtZ"></div>
@@ -127,21 +130,26 @@
 
         <button class="accordion">Animation</button>
         <div class="panel">
-          <p>Lorem ipsum...</p>
           <div>
+            <p>Valor</p>
             <input id="valAnimation" type="number" label="Digita um valor">
+            <p>Eixo</p>
             <input id="valEixo" type="text" label="Escolha o Eixo">
-            <button onclick="addTranslationForAnimation()">Translation</button>
-            <button onclick="addRotationForAnimation()">Rotation</button>
-            <button onclick="addScaleForAnimation()">Scale</button>
+          </div>
+          <div>
+            <button class="buttonAnimation" onclick="addTranslationForAnimation()">Translation</button>
+            <button class="buttonAnimation" onclick="addRotationForAnimation()">Rotation</button>
+            <button class="buttonAnimation" onclick="addScaleForAnimation()">Scale</button>
           </div>
 
+          <div class"butonAnimationForList">
+            <button id="removeAnimationOfList" class="buttonRemove" onclick="removeAnimationCommand()">RemoveStep</button>
+            <button id="saveList" onclick="newListAnimation()">Save List</button>
+            <button id="addAnimationInList" class="buttonAdd" onclick="startAnimation()">Start</button>
+          </div>
           <div>
             <ul id="listForAnimation" name="viewAnimation">
             </ul>
-          </div>
-          <div>
-            <button onclick="startAnimation()">Start Animation</button>
           </div>
         </div>
       </div>
